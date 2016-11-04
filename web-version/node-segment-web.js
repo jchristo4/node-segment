@@ -116,7 +116,6 @@ var NODE_SEGMENT = (function () {
 	p(list_DOUBLE_NAME_2, DOUBLE_NAME_2, 2);
 	p(list_SINGLE_NAME, SINGLE_NAME, 1);
 
-
 	/*///////////////////////////////////////////////////////////////////////////
 	lib/module/URLTokenizer.js
 	///////////////////////////////////////////////////////////////////////////*/
@@ -1180,7 +1179,7 @@ var NODE_SEGMENT = (function () {
 
 
 		return {
-			type: 'tokenizer', /** 模块类型 */
+			type: 'optimizer', /** 模块类型 */
 			init: init,
 			doOptimize: doOptimize
 		};
@@ -1211,7 +1210,6 @@ var NODE_SEGMENT = (function () {
 		 */
 		var doOptimize = function (words) {
 		  //debug(words);
-		  var POSTAG = exports.segment.POSTAG;
 		  var i = 0;
 		  
 		  /* 第一遍扫描 */
@@ -1306,7 +1304,7 @@ var NODE_SEGMENT = (function () {
 		};
 
 		return {
-			type: 'tokenizer', /** 模块类型 */
+			type: 'optimizer', /** 模块类型 */
 			init: init,
 			doOptimize: doOptimize
 		};
@@ -1320,12 +1318,15 @@ var NODE_SEGMENT = (function () {
 
 	var DictOptimizer = (function() {
 
+		var this_segment;
+
 		/**
 		 * 模块初始化
 		 *
 		 * @param {Segment} segment 分词接口
 		 */
 		var init = function (segment) {
+			this_segment = segment;
 		  return segment;
 		};
 
@@ -1342,8 +1343,7 @@ var NODE_SEGMENT = (function () {
 		    is_not_first = false;
 		  }
 		  // 合并相邻的能组成一个单词的两个词
-		  var TABLE = exports.segment.getDict('TABLE');
-		  var POSTAG = exports.segment.POSTAG;
+		  var TABLE = this_segment.getDict('TABLE');
 		  
 		  var i = 0;
 		  var ie = words.length - 1;
@@ -1437,11 +1437,11 @@ var NODE_SEGMENT = (function () {
 		  }
 		  
 		  // 针对组合数字后无法识别新组合的数字问题，需要重新扫描一次
-		  return is_not_first === true ? words : exports.doOptimize(words, true);
+		  return is_not_first === true ? words : doOptimize(words, true);
 		};
 
 		return {
-			type: 'tokenizer', /** 模块类型 */
+			type: 'optimizer', /** 模块类型 */
 			init: init,
 			doOptimize: doOptimize
 		};
@@ -1455,12 +1455,15 @@ var NODE_SEGMENT = (function () {
 
 	var DatetimeOptimizer = (function() {
 
+		var this_segment;
+
 		/**
 		 * 模块初始化
 		 *
 		 * @param {Segment} segment 分词接口
 		 */
 		var init = function (segment) {
+			this_segment = segment;
 		  return segment;
 		};
 
@@ -1476,8 +1479,7 @@ var NODE_SEGMENT = (function () {
         is_not_first = false;
       }
       // 合并相邻的能组成一个单词的两个词
-      var TABLE = exports.segment.getDict('TABLE');
-      var POSTAG = exports.segment.POSTAG;
+      var TABLE = this_segment.getDict('TABLE');
       
       var i = 0;
       var ie = words.length - 1;
@@ -1531,7 +1533,7 @@ var NODE_SEGMENT = (function () {
     // ====================================================
 
 		return {
-			type: 'tokenizer', /** 模块类型 */
+			type: 'optimizer', /** 模块类型 */
 			init: init,
 			doOptimize: doOptimize
 		};
@@ -1800,7 +1802,6 @@ var NODE_SEGMENT = (function () {
 	 * @return {Segment}
 	 */
 	Segment.prototype.loadDict = function (name, type, convert_to_lower) {
-	  var filename = this._resolveDictFilename(name);
 	  if (!type)  type = 'TABLE';     // 默认为TABLE
 
 	  // 初始化词典
@@ -1810,10 +1811,10 @@ var NODE_SEGMENT = (function () {
 	  var TABLE2 = this.DICT[type + '2']; // 词典表  '长度' => '词' => 属性
 	  // 导入数据
 	  var POSTAG = this.POSTAG;
-	  var data = fs.readFileSync(filename, 'utf8');
+	  var data = eval(name);
 	  if (convert_to_lower) data = data.toLowerCase();
 
-	  data.split(/\r?\n/).forEach(function (line) {
+	  data.split(/ஃ/).forEach(function (line) {
 	    var blocks = line.split('|');
 	    if (blocks.length > 2) {
 	      var w = blocks[0].trim();
@@ -1848,16 +1849,15 @@ var NODE_SEGMENT = (function () {
 	 * @param {String} name 字典文件名
 	 */
 	Segment.prototype.loadSynonymDict = function (name) {
-	  var filename = this._resolveDictFilename(name);
 	  var type = 'SYNONYM';
 
 	  // 初始化词典
 	  if (!this.DICT[type]) this.DICT[type] = {};
 	  var TABLE = this.DICT[type];        // 词典表  '同义词' => '标准词'
 	  // 导入数据
-	  var data = fs.readFileSync(filename, 'utf8');
+	  var data = eval(name);
 
-	  data.split(/\r?\n/).forEach(function (line) {
+	  data.split(/ஃ/).forEach(function (line) {
 	    var blocks = line.split(',');
 	    if (blocks.length > 1) {
 	      var n1 = blocks[0].trim();
@@ -1878,16 +1878,15 @@ var NODE_SEGMENT = (function () {
 	 * @param {String} name 字典文件名
 	 */
 	Segment.prototype.loadStopwordDict = function (name) {
-	  var filename = this._resolveDictFilename(name);
 	  var type = 'STOPWORD';
 
 	  // 初始化词典
 	  if (!this.DICT[type]) this.DICT[type] = {};
 	  var TABLE = this.DICT[type];        // 词典表  '同义词' => '标准词'
 	  // 导入数据
-	  var data = fs.readFileSync(filename, 'utf8');
+	  var data = eval(name);
 
-	  data.split(/\r?\n/).forEach(function (line) {
+	  data.split(/ஃ/).forEach(function (line) {
 	    line = line.trim();
 	    if (line) {
 	      TABLE[line] = true;
@@ -1921,13 +1920,13 @@ var NODE_SEGMENT = (function () {
 	    .use('DatetimeOptimizer')       // 日期时间识别优化
 
 	    // 字典文件
-	    // .loadDict('dict.txt')           // 盘古词典
-	    .loadDict('dict2.txt')          // 扩展词典（用于调整原盘古词典）
-	    // .loadDict('dict3.txt')          // 扩展词典（用于调整原盘古词典）
-	    // .loadDict('names.txt')          // 常见名词、人名
-	    // .loadDict('wildcard.txt', 'WILDCARD', true)   // 通配符
-	    // .loadSynonymDict('synonym.txt')   // 同义词
-	    // .loadStopwordDict('stopword.txt') // 停止符
+	    // .loadDict('dict.txt')        	// 盘古词典
+	    .loadDict('dict2')          			// 扩展词典（用于调整原盘古词典）
+	    .loadDict('dict3')          		// 扩展词典（用于调整原盘古词典）
+	    .loadDict('names')          		// 常见名词、人名
+	    .loadDict('wildcard', 'WILDCARD', true)   // 通配符
+	    .loadSynonymDict('synonym')   	// 同义词
+	    .loadStopwordDict('stopword') 	// 停止符
 	  ;
 	  return this;
 	};
